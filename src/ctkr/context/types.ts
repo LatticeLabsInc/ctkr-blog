@@ -27,4 +27,7 @@ export interface CTKRContextValue {
 
   /** Refetch posts from CTKR */
   refetchPosts: () => Promise<void>;
+
+  /** Initialization error, if any */
+  error: Error | null;
 }

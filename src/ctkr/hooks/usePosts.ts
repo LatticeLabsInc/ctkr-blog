@@ -18,7 +18,9 @@ export const usePosts = () => {
         throw new Error('CTKR not initialized');
       }
 
-      console.log('[usePosts] Creating post:', { title, content: content.substring(0, 50) + '...' });
+      if (import.meta.env.DEV) {
+        console.log('[usePosts] Creating post:', { title, content: content.substring(0, 50) + '...' });
+      }
 
       const postId = crypto.randomUUID();
       const slug = title.toLowerCase().replace(/\s+/g, '-');
@@ -39,7 +41,9 @@ export const usePosts = () => {
         properties: postProperties as unknown as Record<string, unknown>,
       });
 
-      console.log('[usePosts] Post object created:', post.signature.id);
+      if (import.meta.env.DEV) {
+        console.log('[usePosts] Post object created:', post.signature.id);
+      }
 
       // Create authorship morphism
       const authorshipProperties: AuthorshipProperties = {
@@ -52,7 +56,9 @@ export const usePosts = () => {
         properties: authorshipProperties as unknown as Record<string, unknown>,
       });
 
-      console.log('[usePosts] Authorship morphism created:', morphism.signature.id);
+      if (import.meta.env.DEV) {
+        console.log('[usePosts] Authorship morphism created:', morphism.signature.id);
+      }
 
       // Refresh posts from context (this will update all components)
       await refetchPosts();

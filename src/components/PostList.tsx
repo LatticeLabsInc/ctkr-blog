@@ -8,8 +8,6 @@ import { PostCard } from './PostCard';
 export const PostList: React.FC = () => {
   const { posts, loading } = usePosts();
 
-  console.log('[PostList] Rendering with posts:', posts.length, 'loading:', loading);
-
   if (loading) {
     return (
       <div className="post-list">

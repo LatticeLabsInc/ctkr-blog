@@ -12,14 +12,7 @@ interface PostCardProps {
 export const PostCard: React.FC<PostCardProps> = ({ post }) => {
   const postProps = post.properties as unknown as PostProperties;
 
-  console.log('[PostCard] Rendering post:', {
-    postId: post.signature.id,
-    properties: post.properties,
-    postProps
-  });
-
   if (!postProps) {
-    console.log('[PostCard] No properties, returning null');
     return null;
   }
 

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, PropsWithChildren } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, PropsWithChildren } from 'react';
 import { Client, RichCategory, RichObject, InMemoryStore } from '@ctkr/core';
 import { CTKRContextValue } from './types';
 import { UserProperties } from '../../types/blog';
@@ -12,7 +12,8 @@ const CTKRContext = createContext<CTKRContextValue | null>(null);
  * CTKR Provider component that initializes the client, store, and blog category
  */
 export const CTKRProvider: React.FC<PropsWithChildren> = ({ children }) => {
-  // Create singleton instances of client and store
+  // Singleton instances: useState with lazy initialization ensures these are created once per provider mount
+  // and persist across re-renders. The function is only called on initial render.
   const [client] = useState(() => new Client());
   const [store] = useState(() => new InMemoryStore({ id: 'blog-store', name: 'Blog Store' }));
 
@@ -20,31 +21,31 @@ export const CTKRProvider: React.FC<PropsWithChildren> = ({ children }) => {
   const [blogCategory, setBlogCategory] = useState<RichCategory | null>(null);
   const [user, setUser] = useState<RichObject | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
 
   // State for posts (shared across all components)
   const [posts, setPosts] = useState<RichObject[]>([]);
   const [postsLoading, setPostsLoading] = useState(false);
 
-  // Function to fetch all posts
-  const refetchPosts = async () => {
+  // Function to fetch all posts - memoized with proper dependencies
+  const refetchPosts = useCallback(async () => {
     if (!blogCategory || !user) {
-      console.log('[CTKRContext] Cannot fetch posts - not initialized');
       return;
     }
 
     setPostsLoading(true);
     try {
-      console.log('[CTKRContext] Fetching posts for user:', user.signature.id);
+      if (import.meta.env.DEV) {
+        console.log('[CTKRContext] Fetching posts for user:', user.signature.id);
+      }
 
       // Get all morphisms from user
       const morphisms = await user.getMorphismsFrom();
-      console.log('[CTKRContext] Found morphisms:', morphisms.length);
 
       // Filter authorship morphisms
       const authorshipMorphisms = morphisms.filter(
         (m) => m.properties?.type === 'Authorship'
       );
-      console.log('[CTKRContext] Authorship morphisms:', authorshipMorphisms.length);
 
       // Get target objects (posts)
       const postObjects = await Promise.all(
@@ -54,29 +55,32 @@ export const CTKRProvider: React.FC<PropsWithChildren> = ({ children }) => {
       );
 
       const validPosts = postObjects.filter(Boolean) as RichObject[];
-      console.log('[CTKRContext] Fetched posts:', validPosts.length);
       setPosts(validPosts);
+
+      if (import.meta.env.DEV) {
+        console.log('[CTKRContext] Fetched posts:', validPosts.length);
+      }
     } catch (error) {
       console.error('[CTKRContext] Error fetching posts:', error);
     } finally {
       setPostsLoading(false);
     }
-  };
+  }, [blogCategory, user]);
 
   // Initialize CTKR on mount
   useEffect(() => {
     async function init() {
       try {
-        console.log('[CTKR] Initializing blog...');
+        if (import.meta.env.DEV) {
+          console.log('[CTKR] Initializing blog...');
+        }
 
         // Attach store to client
         client.attachStore(store);
-        console.log('[CTKR] Store attached');
 
         // Create blog category
         const category = await client.createCategory(store, { name: 'blog' });
         setBlogCategory(category);
-        console.log('[CTKR] Category created:', category.signature.id);
 
         // Create demo user object
         const userProperties: UserProperties = {
@@ -92,11 +96,15 @@ export const CTKRProvider: React.FC<PropsWithChildren> = ({ children }) => {
           properties: userProperties as unknown as Record<string, unknown>,
         });
         setUser(demoUser);
-        console.log('[CTKR] User created:', demoUser.signature.id);
 
         setIsInitialized(true);
-        console.log('[CTKR] Initialization complete');
-      } catch (error) {
+
+        if (import.meta.env.DEV) {
+          console.log('[CTKR] Initialization complete');
+        }
+      } catch (err) {
+        const error = err instanceof Error ? err : new Error('Initialization failed');
+        setError(error);
         console.error('[CTKR] Initialization failed:', error);
       }
     }
@@ -109,7 +117,7 @@ export const CTKRProvider: React.FC<PropsWithChildren> = ({ children }) => {
     if (isInitialized) {
       refetchPosts();
     }
-  }, [isInitialized]);
+  }, [isInitialized, refetchPosts]);
 
   const value: CTKRContextValue = {
     client,
@@ -120,6 +128,7 @@ export const CTKRProvider: React.FC<PropsWithChildren> = ({ children }) => {
     posts,
     postsLoading,
     refetchPosts,
+    error,
   };
 
   return <CTKRContext.Provider value={value}>{children}</CTKRContext.Provider>;
