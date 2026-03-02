@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, Pro
 import { Client, RichCategory, RichObject, InMemoryStore } from '@ctkr/core';
 import { CTKRContextValue } from './types';
 import { UserProperties } from '../../types/blog';
+import { userPropertiesToCtkr } from '../../utils/ctkrHelpers';
 
 /**
  * CTKR Context for managing the blog's category-theoretic data
@@ -93,7 +94,7 @@ export const CTKRProvider: React.FC<PropsWithChildren> = ({ children }) => {
 
         const demoUser = await client.createObject(store, category, {
           name: 'demo-user',
-          properties: userProperties as unknown as Record<string, unknown>,
+          properties: userPropertiesToCtkr(userProperties),
         });
         setUser(demoUser);
 

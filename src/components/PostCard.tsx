@@ -1,6 +1,7 @@
 import React from 'react';
 import { RichObject } from '@ctkr/core';
-import { PostProperties } from '../types/blog';
+import { isPostProperties } from '../types/blog';
+import { formatDate } from '../utils/dateFormatters';
 
 interface PostCardProps {
   post: RichObject;
@@ -10,25 +11,14 @@ interface PostCardProps {
  * Component displaying a single blog post
  */
 export const PostCard: React.FC<PostCardProps> = ({ post }) => {
-  const postProps = post.properties as unknown as PostProperties;
-
-  if (!postProps) {
+  if (!isPostProperties(post.properties)) {
+    if (import.meta.env.DEV) {
+      console.warn('PostCard received post without valid properties', post);
+    }
     return null;
   }
 
-  const formatDate = (dateString: string) => {
-    try {
-      return new Date(dateString).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      });
-    } catch {
-      return dateString;
-    }
-  };
+  const postProps = post.properties;
 
   return (
     <article className="post-card">

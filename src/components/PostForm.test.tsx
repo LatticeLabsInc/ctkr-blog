@@ -92,8 +92,7 @@ describe('PostForm', () => {
     });
   });
 
-  it('should show alert when submitting with empty title', async () => {
-    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+  it('should show error message when submitting with empty title', async () => {
     const user = userEvent.setup();
 
     render(<PostForm />);
@@ -104,14 +103,11 @@ describe('PostForm', () => {
     await user.type(contentInput, 'Test Content');
     await user.click(submitButton);
 
-    expect(alertSpy).toHaveBeenCalledWith('Please fill in both title and content');
+    expect(screen.getByText('Please fill in both title and content')).toBeInTheDocument();
     expect(mockCreatePost).not.toHaveBeenCalled();
-
-    alertSpy.mockRestore();
   });
 
-  it('should show alert when submitting with empty content', async () => {
-    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+  it('should show error message when submitting with empty content', async () => {
     const user = userEvent.setup();
 
     render(<PostForm />);
@@ -122,10 +118,8 @@ describe('PostForm', () => {
     await user.type(titleInput, 'Test Title');
     await user.click(submitButton);
 
-    expect(alertSpy).toHaveBeenCalledWith('Please fill in both title and content');
+    expect(screen.getByText('Please fill in both title and content')).toBeInTheDocument();
     expect(mockCreatePost).not.toHaveBeenCalled();
-
-    alertSpy.mockRestore();
   });
 
   it('should disable button while submitting', async () => {
@@ -162,7 +156,6 @@ describe('PostForm', () => {
 
   it('should handle createPost errors gracefully', async () => {
     mockCreatePost.mockRejectedValue(new Error('Failed to create post'));
-    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     const user = userEvent.setup();
 
@@ -177,19 +170,17 @@ describe('PostForm', () => {
     await user.click(submitButton);
 
     await waitFor(() => {
-      expect(alertSpy).toHaveBeenCalledWith('Failed to create post. Check console for details.');
+      expect(screen.getByText('Failed to create post')).toBeInTheDocument();
       expect(consoleSpy).toHaveBeenCalledWith(
         'Failed to create post:',
         expect.any(Error)
       );
     });
 
-    alertSpy.mockRestore();
     consoleSpy.mockRestore();
   });
 
   it('should not submit form when only whitespace is entered', async () => {
-    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
     const user = userEvent.setup();
 
     render(<PostForm />);
@@ -202,9 +193,7 @@ describe('PostForm', () => {
     await user.type(contentInput, '   ');
     await user.click(submitButton);
 
-    expect(alertSpy).toHaveBeenCalled();
+    expect(screen.getByText('Please fill in both title and content')).toBeInTheDocument();
     expect(mockCreatePost).not.toHaveBeenCalled();
-
-    alertSpy.mockRestore();
   });
 });

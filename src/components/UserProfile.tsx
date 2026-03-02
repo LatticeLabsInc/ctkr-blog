@@ -1,6 +1,6 @@
 import React from 'react';
 import { useCTKR } from '../ctkr/context/CTKRContext';
-import { UserProperties } from '../types/blog';
+import { isUserProperties } from '../types/blog';
 
 /**
  * Component displaying the current user's profile information
@@ -8,11 +8,14 @@ import { UserProperties } from '../types/blog';
 export const UserProfile: React.FC = () => {
   const { user } = useCTKR();
 
-  if (!user) {
+  if (!user || !isUserProperties(user.properties)) {
+    if (import.meta.env.DEV && user && !isUserProperties(user.properties)) {
+      console.warn('UserProfile received user without valid properties', user);
+    }
     return null;
   }
 
-  const userProps = user.properties as unknown as UserProperties;
+  const userProps = user.properties;
 
   return (
     <div className="user-profile">

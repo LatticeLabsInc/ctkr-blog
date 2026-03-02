@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { useCTKR } from '../context/CTKRContext';
 import { PostProperties, AuthorshipProperties } from '../../types/blog';
+import { postPropertiesToCtkr, authorshipPropertiesToCtkr } from '../../utils/ctkrHelpers';
 
 /**
  * Hook for managing blog posts using CTKR
@@ -38,7 +39,7 @@ export const usePosts = () => {
 
       const post = await client.createObject(store, blogCategory, {
         name: `post-${postId}`,
-        properties: postProperties as unknown as Record<string, unknown>,
+        properties: postPropertiesToCtkr(postProperties),
       });
 
       if (import.meta.env.DEV) {
@@ -53,7 +54,7 @@ export const usePosts = () => {
 
       const morphism = await client.createMorphism(user, post, store, blogCategory, {
         name: `authored-${postId}`,
-        properties: authorshipProperties as unknown as Record<string, unknown>,
+        properties: authorshipPropertiesToCtkr(authorshipProperties),
       });
 
       if (import.meta.env.DEV) {

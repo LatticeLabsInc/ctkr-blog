@@ -9,12 +9,16 @@ export const PostForm: React.FC = () => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+    setSuccess(false);
 
     if (!title.trim() || !content.trim()) {
-      alert('Please fill in both title and content');
+      setError('Please fill in both title and content');
       return;
     }
 
@@ -24,10 +28,15 @@ export const PostForm: React.FC = () => {
       // Clear form on success
       setTitle('');
       setContent('');
-      console.log('Post created successfully!');
+      setSuccess(true);
+      if (import.meta.env.DEV) {
+        console.log('Post created successfully!');
+      }
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccess(false), 3000);
     } catch (error) {
       console.error('Failed to create post:', error);
-      alert('Failed to create post. Check console for details.');
+      setError(error instanceof Error ? error.message : 'Failed to create post. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -36,6 +45,8 @@ export const PostForm: React.FC = () => {
   return (
     <div className="post-form">
       <h3>Create New Post</h3>
+      {error && <div className="form-error">{error}</div>}
+      {success && <div className="form-success">Post created successfully!</div>}
       <form onSubmit={handleSubmit}>
         <div className="form-group">
           <label htmlFor="title">Title</label>

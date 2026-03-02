@@ -49,8 +49,8 @@ describe('PostCard', () => {
   it('should render formatted date', () => {
     render(<PostCard post={mockPost as any} />);
 
-    // The exact format depends on locale, but it should contain the date parts
-    const dateElement = screen.getByText(/Jan/);
+    // The formatDate utility returns a localized date string (e.g., "1/15/2024")
+    const dateElement = screen.getByText(/\d+\/\d+\/\d+/);
     expect(dateElement).toBeInTheDocument();
   });
 
@@ -103,8 +103,8 @@ describe('PostCard', () => {
 
     render(<PostCard post={postWithInvalidDate as any} />);
 
-    // When date is invalid, JavaScript's Date API returns "Invalid Date"
-    expect(screen.getByText('Invalid Date')).toBeInTheDocument();
+    // Our formatDate utility returns the original string when date parsing fails
+    expect(screen.getByText('invalid-date')).toBeInTheDocument();
   });
 
   it('should render with article semantic element', () => {
