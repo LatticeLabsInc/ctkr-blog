@@ -5,3 +5,4 @@ dist/
 .yarn/install-state.gz
 *.tsbuildinfo
 .DS_Store
+.ctkr-explore/
